@@ -6,8 +6,40 @@
 
 ## Review
 
+[What the useEvent React hook is (and isn't)](https://typeofnan.dev/what-the-useevent-react-hook-is-and-isnt/)
 
+### 评论
+
+- 文中列出了两种经典场景，在当今没有 useEvent 的环境下处理起来会比较硌手
+  1. onClick 的 handler 在每次 render 下都会重新定义，导致组件无法利用memo优化
+  2. 组件数据在多 deps 初始化的情况下会触发多次
+- 关于 solidjs 的 createEffect 的想法
+  - 更多的 lifecycle 可能会加重使用者的心智负担，就像过去的 class component
 
 ## Tip
 
+这个方法在未来会加入到react提供的hook api中，但是团队的react版本不会那么轻易升级，那么可以把以下代码加入到现有项目中，就能享用了。
+
+[useEvent implementation](https://github.com/reactjs/rfcs/blob/useevent/text/0000-useevent.md#internal-implementation)
+
+```
+// (!) Approximate behavior
+
+function useEvent(handler) {
+  const handlerRef = useRef(null);
+
+  // In a real implementation, this would run before layout effects
+  useLayoutEffect(() => {
+    handlerRef.current = handler;
+  });
+
+  return useCallback((...args) => {
+    // In a real implementation, this would throw if called during render
+    const fn = handlerRef.current;
+    return fn(...args);
+  }, []);
+}
+```
+
 ## Share
+
